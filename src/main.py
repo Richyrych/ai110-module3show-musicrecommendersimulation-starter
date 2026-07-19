@@ -12,6 +12,8 @@ You will implement the functions in recommender.py:
 from dataclasses import asdict
 from pathlib import Path
 
+from tabulate import tabulate
+
 from recommender import load_songs, recommend_songs, UserProfile
 
 SONGS_CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "songs.csv"
@@ -30,6 +32,9 @@ somber_acoustic_rock_fan = UserProfile(
     target_instrumentalness=0.80,
     target_speechiness=0.03,
     target_tempo_bpm=65,
+    target_release_decade=2000,
+    prefers_live=True,
+    target_loudness=-9.0,
 )
 
 # Three distinct user_prefs dicts (functional-path schema — mirrors
@@ -49,6 +54,9 @@ high_energy_pop_fan = {
     "target_instrumentalness": 0.02,
     "target_speechiness": 0.08,
     "target_tempo_bpm": 128,
+    "target_release_decade": 2020,
+    "prefers_live": False,
+    "target_loudness": -3.5,
 }
 
 # Classic country: no "country" genre exists in songs.csv, and the artist is
@@ -64,6 +72,9 @@ classic_country_fan = {
     "target_instrumentalness": 0.05,
     "target_speechiness": 0.08,
     "target_tempo_bpm": 95,
+    "target_release_decade": 1990,
+    "prefers_live": True,
+    "target_loudness": -6.0,
 }
 
 # Neo-classical: quiet, acoustic, instrumental. Deliberately matches
@@ -79,23 +90,35 @@ neo_classical_fan = {
     "target_instrumentalness": 0.95,
     "target_speechiness": 0.02,
     "target_tempo_bpm": 65,
+    "target_release_decade": 1990,
+    "prefers_live": False,
+    "target_loudness": -12.0,
 }
 
 
 def print_recommendations(recommendations, profile_name: str = "") -> None:
-    divider = "=" * 60
-    header = f"TOP RECOMMENDATIONS — {profile_name}" if profile_name else "TOP RECOMMENDATIONS"
-    print(f"\n{divider}")
-    print(header.center(60))
-    print(divider)
+    title = f"TOP RECOMMENDATIONS — {profile_name}" if profile_name else "TOP RECOMMENDATIONS"
+    print(f"\n{title}")
 
-    for rank, (song, score, explanation) in enumerate(recommendations, start=1):
-        print(f"\n#{rank}  {song['title']} — Score: {score:.2f}")
-        print("-" * 60)
-        for reason in explanation.split("; "):
-            print(f"   • {reason}")
-
-    print(f"\n{divider}\n")
+    rows = [
+        [
+            rank,
+            song["title"],
+            song["artist"],
+            f"{score:.2f}",
+            "\n".join(f"• {reason}" for reason in highlights.split("; ")),
+        ]
+        for rank, (song, score, _explanation, highlights) in enumerate(recommendations, start=1)
+    ]
+    print(
+        tabulate(
+            rows,
+            headers=["#", "Title", "Artist", "Score", "Top Reasons"],
+            tablefmt="fancy_grid",
+            maxcolwidths=[None, 20, 16, None, 45],
+        )
+    )
+    print()
 
 
 def main() -> None:
