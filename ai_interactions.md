@@ -10,34 +10,60 @@
 
 **What task did you give the agent?**
 
-<!-- Describe the goal you asked the agent to accomplish -->
+Build table for visual output
 
 **Prompts used:**
 
-<!-- Paste the key prompts you gave the agent -->
+Ok.  Now lets use the tabulate library to format the output for each user profile into an aesthetic table format
 
 **What did the agent generate or change?**
 
-<!-- List the files edited, code generated, or commands run -->
+Added tabulate to requirements.txt.  Rewrote print_recomendations in main.py.  
+print(
+        tabulate(
+            rows,
+            headers=["#", "Title", "Artist", "Score", "Why"],
+            tablefmt="fancy_grid",
+            maxcolwidths=[None, 20, 16, None, 60],
+        )
 
 **What did you verify or fix manually?**
 
-<!-- Describe anything the agent got wrong or that required human review -->
-
----
+I printed the table in the terminal to confirm it ran properly and gave the correct output.
 
 ## Design Pattern (SF10)
 
-> Document how AI helped you choose or implement a design pattern.
-
+From Claude: That works, but 12 reasons per song makes for very tall, boxy rows — good information, less "aesthetic." Let's add bullets inside the wrapped cell for better scannability, matching the polish of the layout without changing the underlying data.
 **Which design pattern did you use?**
 
-<!-- e.g., Strategy, Factory, Observer, etc. -->
+I went with Claude's recommendation on the layout.
 
 **How did AI help you brainstorm or implement it?**
 
-<!-- Describe the conversation or suggestions that led to your decision -->
+Claude built the funciton into the print function and added tabulate into the requirements so it could be accessed as a library
 
 **How does the pattern appear in your final code?**
 
-<!-- Point to the relevant class or method -->
+def print_recommendations(recommendations, profile_name: str = "") -> None:
+    title = f"TOP RECOMMENDATIONS — {profile_name}" if profile_name else "TOP RECOMMENDATIONS"
+    print(f"\n{title}")
+
+    rows = [
+        [
+            rank,
+            song["title"],
+            song["artist"],
+            f"{score:.2f}",
+            "\n".join(f"• {reason}" for reason in explanation.split("; ")),
+        ]
+        for rank, (song, score, explanation) in enumerate(recommendations, start=1)
+    ]
+    print(
+        tabulate(
+            rows,
+            headers=["#", "Title", "Artist", "Score", "Why"],
+            tablefmt="fancy_grid",
+            maxcolwidths=[None, 20, 16, None, 60],
+        )
+    )
+    print()
